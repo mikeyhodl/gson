@@ -16,6 +16,7 @@
 
 package com.google.gson.internal.bind;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This writer creates a JsonElement.
@@ -35,10 +37,10 @@ public final class JsonTreeWriter extends JsonWriter {
     @Override public void write(char[] buffer, int offset, int counter) {
       throw new AssertionError();
     }
-    @Override public void flush() throws IOException {
+    @Override public void flush() {
       throw new AssertionError();
     }
-    @Override public void close() throws IOException {
+    @Override public void close() {
       throw new AssertionError();
     }
   };
@@ -46,7 +48,7 @@ public final class JsonTreeWriter extends JsonWriter {
   private static final JsonPrimitive SENTINEL_CLOSED = new JsonPrimitive("closed");
 
   /** The JsonElements and JsonArrays under modification, outermost to innermost. */
-  private final List<JsonElement> stack = new ArrayList<JsonElement>();
+  private final List<JsonElement> stack = new ArrayList<>();
 
   /** The name for the next JSON object value. If non-null, the top of the stack is a JsonObject. */
   private String pendingName;
@@ -91,6 +93,7 @@ public final class JsonTreeWriter extends JsonWriter {
     }
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter beginArray() throws IOException {
     JsonArray array = new JsonArray();
     put(array);
@@ -98,6 +101,7 @@ public final class JsonTreeWriter extends JsonWriter {
     return this;
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter endArray() throws IOException {
     if (stack.isEmpty() || pendingName != null) {
       throw new IllegalStateException();
@@ -110,6 +114,7 @@ public final class JsonTreeWriter extends JsonWriter {
     throw new IllegalStateException();
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter beginObject() throws IOException {
     JsonObject object = new JsonObject();
     put(object);
@@ -117,6 +122,7 @@ public final class JsonTreeWriter extends JsonWriter {
     return this;
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter endObject() throws IOException {
     if (stack.isEmpty() || pendingName != null) {
       throw new IllegalStateException();
@@ -129,10 +135,9 @@ public final class JsonTreeWriter extends JsonWriter {
     throw new IllegalStateException();
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter name(String name) throws IOException {
-    if (name == null) {
-      throw new NullPointerException("name == null");
-    }
+    Objects.requireNonNull(name, "name == null");
     if (stack.isEmpty() || pendingName != null) {
       throw new IllegalStateException();
     }
@@ -144,6 +149,7 @@ public final class JsonTreeWriter extends JsonWriter {
     throw new IllegalStateException();
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter value(String value) throws IOException {
     if (value == null) {
       return nullValue();
@@ -152,16 +158,23 @@ public final class JsonTreeWriter extends JsonWriter {
     return this;
   }
 
+  @Override public JsonWriter jsonValue(String value) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @CanIgnoreReturnValue
   @Override public JsonWriter nullValue() throws IOException {
     put(JsonNull.INSTANCE);
     return this;
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter value(boolean value) throws IOException {
     put(new JsonPrimitive(value));
     return this;
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter value(Boolean value) throws IOException {
     if (value == null) {
       return nullValue();
@@ -170,6 +183,16 @@ public final class JsonTreeWriter extends JsonWriter {
     return this;
   }
 
+  @CanIgnoreReturnValue
+  @Override public JsonWriter value(float value) throws IOException {
+    if (!isLenient() && (Float.isNaN(value) || Float.isInfinite(value))) {
+      throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
+    }
+    put(new JsonPrimitive(value));
+    return this;
+  }
+
+  @CanIgnoreReturnValue
   @Override public JsonWriter value(double value) throws IOException {
     if (!isLenient() && (Double.isNaN(value) || Double.isInfinite(value))) {
       throw new IllegalArgumentException("JSON forbids NaN and infinities: " + value);
@@ -178,11 +201,13 @@ public final class JsonTreeWriter extends JsonWriter {
     return this;
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter value(long value) throws IOException {
     put(new JsonPrimitive(value));
     return this;
   }
 
+  @CanIgnoreReturnValue
   @Override public JsonWriter value(Number value) throws IOException {
     if (value == null) {
       return nullValue();

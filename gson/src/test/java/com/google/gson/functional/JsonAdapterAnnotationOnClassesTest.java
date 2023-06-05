@@ -16,6 +16,10 @@
 
 package com.google.gson.functional;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
+import com.google.common.base.Splitter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -33,40 +37,44 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Locale;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
  * Functional tests for the {@link com.google.gson.annotations.JsonAdapter} annotation on classes.
  */
-public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
+public final class JsonAdapterAnnotationOnClassesTest {
 
+  @Test
   public void testJsonAdapterInvoked() {
     Gson gson = new Gson();
     String json = gson.toJson(new A("bar"));
-    assertEquals("\"jsonAdapter\"", json);
+    assertThat(json).isEqualTo("\"jsonAdapter\"");
 
    // Also invoke the JsonAdapter javadoc sample
     json = gson.toJson(new User("Inderjeet", "Singh"));
-    assertEquals("{\"name\":\"Inderjeet Singh\"}", json);
+    assertThat(json).isEqualTo("{\"name\":\"Inderjeet Singh\"}");
     User user = gson.fromJson("{'name':'Joel Leitch'}", User.class);
-    assertEquals("Joel", user.firstName);
-    assertEquals("Leitch", user.lastName);
+    assertThat(user.firstName).isEqualTo("Joel");
+    assertThat(user.lastName).isEqualTo("Leitch");
 
     json = gson.toJson(Foo.BAR);
-    assertEquals("\"bar\"", json);
+    assertThat(json).isEqualTo("\"bar\"");
     Foo baz = gson.fromJson("\"baz\"", Foo.class);
-    assertEquals(Foo.BAZ, baz);
+    assertThat(baz).isEqualTo(Foo.BAZ);
   }
 
+  @Test
   public void testJsonAdapterFactoryInvoked() {
     Gson gson = new Gson();
     String json = gson.toJson(new C("bar"));
-    assertEquals("\"jsonAdapterFactory\"", json);
+    assertThat(json).isEqualTo("\"jsonAdapterFactory\"");
     C c = gson.fromJson("\"bar\"", C.class);
-    assertEquals("jsonAdapterFactory", c.value);
+    assertThat(c.value).isEqualTo("jsonAdapterFactory");
   }
 
+  @Test
   public void testRegisteredAdapterOverridesJsonAdapter() {
     TypeAdapter<A> typeAdapter = new TypeAdapter<A>() {
       @Override public void write(JsonWriter out, A value) throws IOException {
@@ -80,15 +88,16 @@ public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
       .registerTypeAdapter(A.class, typeAdapter)
       .create();
     String json = gson.toJson(new A("abcd"));
-    assertEquals("\"registeredAdapter\"", json);
+    assertThat(json).isEqualTo("\"registeredAdapter\"");
   }
 
   /**
    * The serializer overrides field adapter, but for deserializer the fieldAdapter is used.
    */
+  @Test
   public void testRegisteredSerializerOverridesJsonAdapter() {
     JsonSerializer<A> serializer = new JsonSerializer<A>() {
-      public JsonElement serialize(A src, Type typeOfSrc,
+      @Override public JsonElement serialize(A src, Type typeOfSrc,
           JsonSerializationContext context) {
         return new JsonPrimitive("registeredSerializer");
       }
@@ -97,17 +106,18 @@ public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
       .registerTypeAdapter(A.class, serializer)
       .create();
     String json = gson.toJson(new A("abcd"));
-    assertEquals("\"registeredSerializer\"", json);
+    assertThat(json).isEqualTo("\"registeredSerializer\"");
     A target = gson.fromJson("abcd", A.class);
-    assertEquals("jsonAdapter", target.value);
+    assertThat(target.value).isEqualTo("jsonAdapter");
   }
 
   /**
    * The deserializer overrides Json adapter, but for serializer the jsonAdapter is used.
    */
+  @Test
   public void testRegisteredDeserializerOverridesJsonAdapter() {
     JsonDeserializer<A> deserializer = new JsonDeserializer<A>() {
-      public A deserialize(JsonElement json, Type typeOfT,
+      @Override public A deserialize(JsonElement json, Type typeOfT,
           JsonDeserializationContext context) throws JsonParseException {
         return new A("registeredDeserializer");
       }
@@ -116,11 +126,12 @@ public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
       .registerTypeAdapter(A.class, deserializer)
       .create();
     String json = gson.toJson(new A("abcd"));
-    assertEquals("\"jsonAdapter\"", json);
+    assertThat(json).isEqualTo("\"jsonAdapter\"");
     A target = gson.fromJson("abcd", A.class);
-    assertEquals("registeredDeserializer", target.value);
+    assertThat(target.value).isEqualTo("registeredDeserializer");
   }
 
+  @Test
   public void testIncorrectTypeAdapterFails() {
     try {
       String json = new Gson().toJson(new ClassWithIncorrectJsonAdapter("bar"));
@@ -128,15 +139,17 @@ public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
     } catch (ClassCastException expected) {}
   }
 
+  @Test
   public void testSuperclassTypeAdapterNotInvoked() {
     String json = new Gson().toJson(new B("bar"));
-    assertFalse(json.contains("jsonAdapter"));
+    assertThat(json).doesNotContain("jsonAdapter");
   }
 
+  @Test
   public void testNullSafeObjectFromJson() {
     Gson gson = new Gson();
     NullableClass fromJson = gson.fromJson("null", NullableClass.class);
-    assertNull(fromJson);
+    assertThat(fromJson).isNull();
   }
 
   @JsonAdapter(A.JsonAdapter.class)
@@ -215,9 +228,9 @@ public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
       // implement read: split name into firstName and lastName
       in.beginObject();
       in.nextName();
-      String[] nameParts = in.nextString().split(" ");
+      List<String> nameParts = Splitter.on(" ").splitToList(in.nextString());
       in.endObject();
-      return new User(nameParts[0], nameParts[1]);
+      return new User(nameParts.get(0), nameParts.get(1));
     }
   }
 
@@ -250,6 +263,7 @@ public final class JsonAdapterAnnotationOnClassesTest extends TestCase {
     }
   }
 
+  @Test
   public void testIncorrectJsonAdapterType() {
     try {
       new Gson().toJson(new D());

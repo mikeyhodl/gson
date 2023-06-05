@@ -15,25 +15,28 @@
  */
 package com.google.gson.regression;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.reflect.TypeToken;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class JsonAdapterNullSafeTest extends TestCase {
+public class JsonAdapterNullSafeTest {
   private final Gson gson = new Gson();
 
-  public void testNullSafeBugSerialize() throws Exception {
+  @Test
+  public void testNullSafeBugSerialize() {
     Device device = new Device("ec57803e");
-    gson.toJson(device);
+    String unused = gson.toJson(device);
   }
 
-  public void testNullSafeBugDeserialize() throws Exception {
+  @Test
+  public void testNullSafeBugDeserialize() {
     Device device = gson.fromJson("{'id':'ec57803e2'}", Device.class);
-    assertEquals("ec57803e2", device.id);
+    assertThat(device.id).isEqualTo("ec57803e2");
   }
 
   @JsonAdapter(Device.JsonAdapterFactory.class)
@@ -46,7 +49,7 @@ public class JsonAdapterNullSafeTest extends TestCase {
     static final class JsonAdapterFactory implements TypeAdapterFactory {
       // The recursiveCall in {@link Device.JsonAdapterFactory} is the source of this bug
       // because we use it to return a null type adapter on a recursive call.
-      private static final ThreadLocal<Boolean> recursiveCall = new ThreadLocal<Boolean>();
+      private static final ThreadLocal<Boolean> recursiveCall = new ThreadLocal<>();
 
       @Override public <T> TypeAdapter<T> create(final Gson gson, TypeToken<T> type) {
         if (type.getRawType() != Device.class || recursiveCall.get() != null) {

@@ -16,19 +16,23 @@
 
 package com.google.gson;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.gson.reflect.TypeToken;
-import java.util.Arrays;
 import java.util.List;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
+ * Tests that by default Gson accepts several forms of comments.
+ *
  * @author Jesse Wilson
  */
-public final class CommentsTest extends TestCase {
+public final class CommentsTest {
 
   /**
    * Test for issue 212.
    */
+  @Test
   public void testParseComments() {
     String json = "[\n"
         + "  // this is a comment\n"
@@ -40,6 +44,6 @@ public final class CommentsTest extends TestCase {
         + "]";
 
     List<String> abc = new Gson().fromJson(json, new TypeToken<List<String>>() {}.getType());
-    assertEquals(Arrays.asList("a", "b", "c"), abc);
+    assertThat(abc).containsExactly("a", "b", "c").inOrder();
   }
 }

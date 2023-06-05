@@ -16,6 +16,9 @@
 
 package com.google.gson.stream;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
+
 import com.google.gson.JsonElement;
 import com.google.gson.internal.Streams;
 import com.google.gson.internal.bind.JsonTreeReader;
@@ -26,9 +29,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 @SuppressWarnings("resource")
 @RunWith(Parameterized.class)
@@ -46,111 +46,155 @@ public class JsonReaderPathTest {
 
   @Test public void path() throws IOException {
     JsonReader reader = factory.create("{\"a\":[2,true,false,null,\"b\",{\"c\":\"d\"},[3]]}");
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
     reader.beginObject();
-    assertEquals("$.", reader.getPath());
-    reader.nextName();
-    assertEquals("$.a", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.");
+    assertThat(reader.getPath()).isEqualTo("$.");
+    String unused1 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
     reader.beginArray();
-    assertEquals("$.a[0]", reader.getPath());
-    reader.nextInt();
-    assertEquals("$.a[1]", reader.getPath());
-    reader.nextBoolean();
-    assertEquals("$.a[2]", reader.getPath());
-    reader.nextBoolean();
-    assertEquals("$.a[3]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[0]");
+    assertThat(reader.getPath()).isEqualTo("$.a[0]");
+    int unused2 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[0]");
+    assertThat(reader.getPath()).isEqualTo("$.a[1]");
+    boolean unused3 = reader.nextBoolean();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[1]");
+    assertThat(reader.getPath()).isEqualTo("$.a[2]");
+    boolean unused4 = reader.nextBoolean();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[2]");
+    assertThat(reader.getPath()).isEqualTo("$.a[3]");
     reader.nextNull();
-    assertEquals("$.a[4]", reader.getPath());
-    reader.nextString();
-    assertEquals("$.a[5]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[3]");
+    assertThat(reader.getPath()).isEqualTo("$.a[4]");
+    String unused5 = reader.nextString();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[4]");
+    assertThat(reader.getPath()).isEqualTo("$.a[5]");
     reader.beginObject();
-    assertEquals("$.a[5].", reader.getPath());
-    reader.nextName();
-    assertEquals("$.a[5].c", reader.getPath());
-    reader.nextString();
-    assertEquals("$.a[5].c", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[5].");
+    assertThat(reader.getPath()).isEqualTo("$.a[5].");
+    String unused6 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[5].c");
+    assertThat(reader.getPath()).isEqualTo("$.a[5].c");
+    String unused7 = reader.nextString();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[5].c");
+    assertThat(reader.getPath()).isEqualTo("$.a[5].c");
     reader.endObject();
-    assertEquals("$.a[6]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[5]");
+    assertThat(reader.getPath()).isEqualTo("$.a[6]");
     reader.beginArray();
-    assertEquals("$.a[6][0]", reader.getPath());
-    reader.nextInt();
-    assertEquals("$.a[6][1]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[6][0]");
+    assertThat(reader.getPath()).isEqualTo("$.a[6][0]");
+    int unused8 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[6][0]");
+    assertThat(reader.getPath()).isEqualTo("$.a[6][1]");
     reader.endArray();
-    assertEquals("$.a[7]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a[6]");
+    assertThat(reader.getPath()).isEqualTo("$.a[7]");
     reader.endArray();
-    assertEquals("$.a", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
     reader.endObject();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
   @Test public void objectPath() throws IOException {
     JsonReader reader = factory.create("{\"a\":1,\"b\":2}");
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
 
-    reader.peek();
-    assertEquals("$", reader.getPath());
+    JsonToken unused1 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
     reader.beginObject();
-    assertEquals("$.", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.");
+    assertThat(reader.getPath()).isEqualTo("$.");
 
-    reader.peek();
-    assertEquals("$.", reader.getPath());
-    reader.nextName();
-    assertEquals("$.a", reader.getPath());
+    JsonToken unused2 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.");
+    assertThat(reader.getPath()).isEqualTo("$.");
+    String unused3 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
 
-    reader.peek();
-    assertEquals("$.a", reader.getPath());
-    reader.nextInt();
-    assertEquals("$.a", reader.getPath());
+    JsonToken unused4 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
+    int unused5 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
 
-    reader.peek();
-    assertEquals("$.a", reader.getPath());
-    reader.nextName();
-    assertEquals("$.b", reader.getPath());
+    JsonToken unused6 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
+    String unused7 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
 
-    reader.peek();
-    assertEquals("$.b", reader.getPath());
-    reader.nextInt();
-    assertEquals("$.b", reader.getPath());
+    JsonToken unused8 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
+    int unused9 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
 
-    reader.peek();
-    assertEquals("$.b", reader.getPath());
+    JsonToken unused10 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
     reader.endObject();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
 
-    reader.peek();
-    assertEquals("$", reader.getPath());
+    JsonToken unused11 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
     reader.close();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
   @Test public void arrayPath() throws IOException {
     JsonReader reader = factory.create("[1,2]");
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
 
-    reader.peek();
-    assertEquals("$", reader.getPath());
+    JsonToken unused1 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
     reader.beginArray();
-    assertEquals("$[0]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[0]");
 
-    reader.peek();
-    assertEquals("$[0]", reader.getPath());
-    reader.nextInt();
-    assertEquals("$[1]", reader.getPath());
+    JsonToken unused2 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[0]");
+    int unused3 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[1]");
 
-    reader.peek();
-    assertEquals("$[1]", reader.getPath());
-    reader.nextInt();
-    assertEquals("$[2]", reader.getPath());
+    JsonToken unused4 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[1]");
+    int unused5 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1]");
+    assertThat(reader.getPath()).isEqualTo("$[2]");
 
-    reader.peek();
-    assertEquals("$[2]", reader.getPath());
+    JsonToken unused6 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1]");
+    assertThat(reader.getPath()).isEqualTo("$[2]");
     reader.endArray();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
 
-    reader.peek();
-    assertEquals("$", reader.getPath());
+    JsonToken unused7 = reader.peek();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
     reader.close();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
   @Test public void multipleTopLevelValuesInOneDocument() throws IOException {
@@ -160,10 +204,12 @@ public class JsonReaderPathTest {
     reader.setLenient(true);
     reader.beginArray();
     reader.endArray();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
     reader.beginArray();
     reader.endArray();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
   @Test public void skipArrayElements() throws IOException {
@@ -171,75 +217,184 @@ public class JsonReaderPathTest {
     reader.beginArray();
     reader.skipValue();
     reader.skipValue();
-    assertEquals("$[2]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1]");
+    assertThat(reader.getPath()).isEqualTo("$[2]");
+  }
+
+  @Test public void skipArrayEnd() throws IOException {
+    JsonReader reader = factory.create("[[],1]");
+    reader.beginArray();
+    reader.beginArray();
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0][0]");
+    assertThat(reader.getPath()).isEqualTo("$[0][0]");
+    reader.skipValue(); // skip end of array
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[1]");
   }
 
   @Test public void skipObjectNames() throws IOException {
-    JsonReader reader = factory.create("{\"a\":1}");
+    JsonReader reader = factory.create("{\"a\":[]}");
     reader.beginObject();
     reader.skipValue();
-    assertEquals("$.null", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.<skipped>");
+    assertThat(reader.getPath()).isEqualTo("$.<skipped>");
+
+    reader.beginArray();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.<skipped>[0]");
+    assertThat(reader.getPath()).isEqualTo("$.<skipped>[0]");
   }
 
   @Test public void skipObjectValues() throws IOException {
     JsonReader reader = factory.create("{\"a\":1,\"b\":2}");
     reader.beginObject();
-    assertEquals("$.", reader.getPath());
-    reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.");
+    assertThat(reader.getPath()).isEqualTo("$.");
+    String unused1 = reader.nextName();
     reader.skipValue();
-    assertEquals("$.null", reader.getPath());
-    reader.nextName();
-    assertEquals("$.b", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
+    String unused2 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
+  }
+
+  @Test public void skipObjectEnd() throws IOException {
+    JsonReader reader = factory.create("{\"a\":{},\"b\":2}");
+    reader.beginObject();
+    String unused = reader.nextName();
+    reader.beginObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a.");
+    assertThat(reader.getPath()).isEqualTo("$.a.");
+    reader.skipValue(); // skip end of object
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
   }
 
   @Test public void skipNestedStructures() throws IOException {
     JsonReader reader = factory.create("[[1,2,3],4]");
     reader.beginArray();
     reader.skipValue();
-    assertEquals("$[1]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[1]");
+  }
+
+  @Test public void skipEndOfDocument() throws IOException {
+    JsonReader reader = factory.create("[]");
+    reader.beginArray();
+    reader.endArray();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
+    reader.skipValue();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
+    reader.skipValue();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
   @Test public void arrayOfObjects() throws IOException {
     JsonReader reader = factory.create("[{},{},{}]");
     reader.beginArray();
-    assertEquals("$[0]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[0]");
     reader.beginObject();
-    assertEquals("$[0].", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0].");
+    assertThat(reader.getPath()).isEqualTo("$[0].");
     reader.endObject();
-    assertEquals("$[1]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[1]");
     reader.beginObject();
-    assertEquals("$[1].", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1].");
+    assertThat(reader.getPath()).isEqualTo("$[1].");
     reader.endObject();
-    assertEquals("$[2]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1]");
+    assertThat(reader.getPath()).isEqualTo("$[2]");
     reader.beginObject();
-    assertEquals("$[2].", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[2].");
+    assertThat(reader.getPath()).isEqualTo("$[2].");
     reader.endObject();
-    assertEquals("$[3]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[2]");
+    assertThat(reader.getPath()).isEqualTo("$[3]");
     reader.endArray();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
   @Test public void arrayOfArrays() throws IOException {
     JsonReader reader = factory.create("[[],[],[]]");
     reader.beginArray();
-    assertEquals("$[0]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[0]");
     reader.beginArray();
-    assertEquals("$[0][0]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0][0]");
+    assertThat(reader.getPath()).isEqualTo("$[0][0]");
     reader.endArray();
-    assertEquals("$[1]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[0]");
+    assertThat(reader.getPath()).isEqualTo("$[1]");
     reader.beginArray();
-    assertEquals("$[1][0]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1][0]");
+    assertThat(reader.getPath()).isEqualTo("$[1][0]");
     reader.endArray();
-    assertEquals("$[2]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[1]");
+    assertThat(reader.getPath()).isEqualTo("$[2]");
     reader.beginArray();
-    assertEquals("$[2][0]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[2][0]");
+    assertThat(reader.getPath()).isEqualTo("$[2][0]");
     reader.endArray();
-    assertEquals("$[3]", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$[2]");
+    assertThat(reader.getPath()).isEqualTo("$[3]");
     reader.endArray();
-    assertEquals("$", reader.getPath());
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
   }
 
-  enum Factory {
+  @Test public void objectOfObjects() throws IOException {
+    JsonReader reader = factory.create("{\"a\":{\"a1\":1,\"a2\":2},\"b\":{\"b1\":1}}");
+    reader.beginObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.");
+    assertThat(reader.getPath()).isEqualTo("$.");
+    String unused1 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
+    reader.beginObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a.");
+    assertThat(reader.getPath()).isEqualTo("$.a.");
+    String unused2 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a.a1");
+    assertThat(reader.getPath()).isEqualTo("$.a.a1");
+    int unused3 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a.a1");
+    assertThat(reader.getPath()).isEqualTo("$.a.a1");
+    String unused4 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a.a2");
+    assertThat(reader.getPath()).isEqualTo("$.a.a2");
+    int unused5 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a.a2");
+    assertThat(reader.getPath()).isEqualTo("$.a.a2");
+    reader.endObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.a");
+    assertThat(reader.getPath()).isEqualTo("$.a");
+    String unused6 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
+    reader.beginObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b.");
+    assertThat(reader.getPath()).isEqualTo("$.b.");
+    String unused7 = reader.nextName();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b.b1");
+    assertThat(reader.getPath()).isEqualTo("$.b.b1");
+    int unused8 = reader.nextInt();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b.b1");
+    assertThat(reader.getPath()).isEqualTo("$.b.b1");
+    reader.endObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$.b");
+    assertThat(reader.getPath()).isEqualTo("$.b");
+    reader.endObject();
+    assertThat(reader.getPreviousPath()).isEqualTo("$");
+    assertThat(reader.getPath()).isEqualTo("$");
+  }
+
+  public enum Factory {
     STRING_READER {
       @Override public JsonReader create(String data) {
         return new JsonReader(new StringReader(data));

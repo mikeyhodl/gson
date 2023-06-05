@@ -1,19 +1,39 @@
+/*
+ * Copyright (C) 2015 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.gson.internal.bind.util;
 
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
- * Utilities methods for manipulating dates in iso8601 format. This is much much faster and GC friendly than using SimpleDateFormat so
+ * Utilities methods for manipulating dates in iso8601 format. This is much faster and GC friendly than using SimpleDateFormat so
  * highly suitable if you (un)serialize lots of date objects.
  * 
  * Supported parse format: [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh[:]mm]]
  * 
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">this specification</a>
  */
-//Date parsing code from Jackson databind ISO8601Utils.java
-// https://github.com/FasterXML/jackson-databind/blob/master/src/main/java/com/fasterxml/jackson/databind/util/ISO8601Utils.java
+// Date parsing code from Jackson databind ISO8601Utils.java
+// https://github.com/FasterXML/jackson-databind/blob/2.8/src/main/java/com/fasterxml/jackson/databind/util/ISO8601Utils.java
 public class ISO8601Utils
 {
     /**
@@ -147,9 +167,10 @@ public class ISO8601Utils
 
             // if the value has no time component (and no time zone), we are done
             boolean hasT = checkOffset(date, offset, 'T');
-            
+
             if (!hasT && (date.length() <= offset)) {
                 Calendar calendar = new GregorianCalendar(year, month - 1, day);
+                calendar.setLenient(false);
 
                 pos.setIndex(offset);
                 return calendar.getTime();

@@ -16,12 +16,11 @@
 
 package com.google.gson;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-
 import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.MalformedJsonException;
+import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * An enumeration that defines two standard number reading strategies and a couple of
@@ -29,6 +28,7 @@ import com.google.gson.stream.MalformedJsonException;
  * {@link Object} and {@link Number}.
  *
  * @see ToNumberStrategy
+ * @since 2.8.9
  */
 public enum ToNumberPolicy implements ToNumberStrategy {
 
@@ -71,11 +71,11 @@ public enum ToNumberPolicy implements ToNumberStrategy {
         try {
           Double d = Double.valueOf(value);
           if ((d.isInfinite() || d.isNaN()) && !in.isLenient()) {
-            throw new MalformedJsonException("JSON forbids NaN and infinities: " + d + in);
+            throw new MalformedJsonException("JSON forbids NaN and infinities: " + d + "; at path " + in.getPreviousPath());
           }
           return d;
         } catch (NumberFormatException doubleE) {
-          throw new JsonParseException("Cannot parse " + value, doubleE);
+          throw new JsonParseException("Cannot parse " + value + "; at path " + in.getPreviousPath(), doubleE);
         }
       }
     }
@@ -91,7 +91,7 @@ public enum ToNumberPolicy implements ToNumberStrategy {
       try {
         return new BigDecimal(value);
       } catch (NumberFormatException e) {
-        throw new JsonParseException("Cannot parse " + value, e);
+        throw new JsonParseException("Cannot parse " + value + "; at path " + in.getPreviousPath(), e);
       }
     }
   }

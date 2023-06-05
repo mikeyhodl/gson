@@ -93,9 +93,9 @@ public final class GraphAdapterBuilderTest {
     Type listOfListsType = new TypeToken<List<List<?>>>() {}.getType();
     Type listOfAnyType = new TypeToken<List<?>>() {}.getType();
 
-    List<List<?>> listOfLists = new ArrayList<List<?>>();
+    List<List<?>> listOfLists = new ArrayList<>();
     listOfLists.add(listOfLists);
-    listOfLists.add(new ArrayList<Object>());
+    listOfLists.add(new ArrayList<>());
 
     GsonBuilder gsonBuilder = new GsonBuilder();
     new GraphAdapterBuilder()
@@ -129,8 +129,9 @@ public final class GraphAdapterBuilderTest {
   @Test
   public void testSerializationWithMultipleTypes() {
     Company google = new Company("Google");
-    new Employee("Jesse", google);
-    new Employee("Joel", google);
+    // Employee constructor adds `this` to the given Company object
+    Employee unused1 = new Employee("Jesse", google);
+    Employee unused2 = new Employee("Joel", google);
 
     GsonBuilder gsonBuilder = new GsonBuilder();
     new GraphAdapterBuilder()
@@ -187,7 +188,7 @@ public final class GraphAdapterBuilderTest {
 
   static class Company {
     final String name;
-    final List<Employee> employees = new ArrayList<Employee>();
+    final List<Employee> employees = new ArrayList<>();
     Company(String name) {
       this.name = name;
     }

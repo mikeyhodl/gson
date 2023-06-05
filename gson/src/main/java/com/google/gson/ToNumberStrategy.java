@@ -16,9 +16,8 @@
 
 package com.google.gson;
 
-import java.io.IOException;
-
 import com.google.gson.stream.JsonReader;
+import java.io.IOException;
 
 /**
  * A strategy that is used to control how numbers should be deserialized for {@link Object} and {@link Number}
@@ -56,6 +55,7 @@ import com.google.gson.stream.JsonReader;
  * @see ToNumberPolicy
  * @see GsonBuilder#setObjectToNumberStrategy(ToNumberStrategy)
  * @see GsonBuilder#setNumberToNumberStrategy(ToNumberStrategy)
+ * @since 2.8.9
  */
 public interface ToNumberStrategy {
 
@@ -65,7 +65,6 @@ public interface ToNumberStrategy {
    *
    * @param in JSON reader to read a number from
    * @return number read from the JSON reader.
-   * @throws IOException
    */
   public Number readNumber(JsonReader in) throws IOException;
 }

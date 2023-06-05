@@ -28,24 +28,22 @@ import com.google.gson.protobuf.generated.Annotations;
 import com.google.gson.protobuf.generated.Bag.OuterMessage;
 import com.google.gson.protobuf.generated.Bag.ProtoWithAnnotations;
 import com.google.gson.protobuf.generated.Bag.ProtoWithAnnotations.InnerMessage;
-import com.google.gson.protobuf.generated.Bag.ProtoWithAnnotations.InnerMessage.Data;
-import com.google.gson.protobuf.generated.Bag.ProtoWithAnnotations.InnerMessage.Type;
 import com.google.protobuf.GeneratedMessageV3;
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Functional tests for protocol buffers using annotations for field names and enum values.
  *
  * @author Emmanuel Cron
  */
-public class ProtosWithAnnotationsTest extends TestCase {
+public class ProtosWithAnnotationsTest {
   private Gson gson;
   private Gson gsonWithEnumNumbers;
   private Gson gsonWithLowerHyphen;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
     ProtoTypeAdapter.Builder protoTypeAdapter = ProtoTypeAdapter.newBuilder()
         .setEnumSerialization(EnumSerialization.NAME)
         .addSerializedNameExtension(Annotations.serializedName)
@@ -65,6 +63,7 @@ public class ProtosWithAnnotationsTest extends TestCase {
         .create();
   }
 
+  @Test
   public void testProtoWithAnnotations_deserialize() {
     String json = String.format("{  %n"
         + "   \"id\":\"41e5e7fd6065d101b97018a465ffff01\",%n"
@@ -110,11 +109,11 @@ public class ProtosWithAnnotationsTest extends TestCase {
     assertThat(proto.hasInnerMessage1()).isFalse();
     assertThat(proto.getInnerMessage2()).isEqualTo(InnerMessage.newBuilder()
         .setNIdCt(98798465)
-        .setContent(Type.TEXT)
-        .addData(Data.newBuilder()
+        .setContent(InnerMessage.Type.TEXT)
+        .addData(InnerMessage.Data.newBuilder()
             .setData("OFIN8e9fhwoeh8((⁹8efywoih")
             .setHeight(665))
-        .addData(Data.newBuilder()
+        .addData(InnerMessage.Data.newBuilder()
             .setData("65")
             .setWidth(-56684))
         .build());
@@ -142,14 +141,16 @@ public class ProtosWithAnnotationsTest extends TestCase {
         + "}]}}");
   }
 
+  @Test
   public void testProtoWithAnnotations_deserializeUnknownEnumValue() {
     String json = String.format("{  %n"
         + "   \"content\":\"UNKNOWN\"%n"
         + "}");
     InnerMessage proto = gson.fromJson(json, InnerMessage.class);
-    assertThat(proto.getContent()).isEqualTo(Type.UNKNOWN);
+    assertThat(proto.getContent()).isEqualTo(InnerMessage.Type.UNKNOWN);
   }
 
+  @Test
   public void testProtoWithAnnotations_deserializeUnrecognizedEnumValue() {
     String json = String.format("{  %n"
         + "   \"content\":\"UNRECOGNIZED\"%n"
@@ -162,12 +163,13 @@ public class ProtosWithAnnotationsTest extends TestCase {
     }
   }
 
+  @Test
   public void testProtoWithAnnotations_deserializeWithEnumNumbers() {
     String json = String.format("{  %n"
         + "   \"content\":\"0\"%n"
         + "}");
     InnerMessage proto = gsonWithEnumNumbers.fromJson(json, InnerMessage.class);
-    assertThat(proto.getContent()).isEqualTo(Type.UNKNOWN);
+    assertThat(proto.getContent()).isEqualTo(InnerMessage.Type.UNKNOWN);
     String rebuilt = gsonWithEnumNumbers.toJson(proto);
     assertThat(rebuilt).isEqualTo("{\"content\":0}");
 
@@ -175,11 +177,12 @@ public class ProtosWithAnnotationsTest extends TestCase {
         + "   \"content\":\"2\"%n"
         + "}");
     proto = gsonWithEnumNumbers.fromJson(json, InnerMessage.class);
-    assertThat(proto.getContent()).isEqualTo(Type.IMAGE);
+    assertThat(proto.getContent()).isEqualTo(InnerMessage.Type.IMAGE);
     rebuilt = gsonWithEnumNumbers.toJson(proto);
     assertThat(rebuilt).isEqualTo("{\"content\":2}");
   }
 
+  @Test
   public void testProtoWithAnnotations_serialize() {
     ProtoWithAnnotations proto = ProtoWithAnnotations.newBuilder()
         .setId("09f3j20839h032y0329hf30932h0nffn")
@@ -189,11 +192,11 @@ public class ProtosWithAnnotationsTest extends TestCase {
             .setLongTimestamp(468406876880768L))
         .setInnerMessage1(InnerMessage.newBuilder()
             .setNIdCt(12)
-            .setContent(Type.IMAGE)
-            .addData(Data.newBuilder()
+            .setContent(InnerMessage.Type.IMAGE)
+            .addData(InnerMessage.Data.newBuilder()
                 .setData("data$$")
                 .setWidth(200))
-            .addData(Data.newBuilder()
+            .addData(InnerMessage.Data.newBuilder()
                 .setHeight(56)))
         .build();
 

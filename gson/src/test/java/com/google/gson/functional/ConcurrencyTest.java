@@ -15,27 +15,27 @@
  */
 package com.google.gson.functional;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.google.gson.Gson;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import junit.framework.TestCase;
-
-import com.google.gson.Gson;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests for ensuring Gson thread-safety.
- * 
+ *
  * @author Inderjeet Singh
  * @author Joel Leitch
  */
-public class ConcurrencyTest extends TestCase {
+public class ConcurrencyTest {
   private Gson gson;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
     gson = new Gson();
   }
 
@@ -43,27 +43,30 @@ public class ConcurrencyTest extends TestCase {
    * Source-code based on
    * http://groups.google.com/group/google-gson/browse_thread/thread/563bb51ee2495081
    */
-  public void testSingleThreadSerialization() { 
-    MyObject myObj = new MyObject(); 
-    for (int i = 0; i < 10; i++) { 
-      gson.toJson(myObj); 
-    } 
-  } 
+  @Test
+  public void testSingleThreadSerialization() {
+    MyObject myObj = new MyObject();
+    for (int i = 0; i < 10; i++) {
+      String unused = gson.toJson(myObj);
+    }
+  }
 
   /**
    * Source-code based on
    * http://groups.google.com/group/google-gson/browse_thread/thread/563bb51ee2495081
    */
-  public void testSingleThreadDeserialization() { 
-    for (int i = 0; i < 10; i++) { 
-      gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class); 
-    } 
-  } 
+  @Test
+  public void testSingleThreadDeserialization() {
+    for (int i = 0; i < 10; i++) {
+      MyObject unused = gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
+    }
+  }
 
   /**
    * Source-code based on
    * http://groups.google.com/group/google-gson/browse_thread/thread/563bb51ee2495081
    */
+  @Test
   public void testMultiThreadSerialization() throws InterruptedException {
     final CountDownLatch startLatch = new CountDownLatch(1);
     final CountDownLatch finishedLatch = new CountDownLatch(10);
@@ -71,12 +74,12 @@ public class ConcurrencyTest extends TestCase {
     ExecutorService executor = Executors.newFixedThreadPool(10);
     for (int taskCount = 0; taskCount < 10; taskCount++) {
       executor.execute(new Runnable() {
-        public void run() {
+        @Override public void run() {
           MyObject myObj = new MyObject();
           try {
             startLatch.await();
             for (int i = 0; i < 10; i++) {
-              gson.toJson(myObj);
+              String unused = gson.toJson(myObj);
             }
           } catch (Throwable t) {
             failed.set(true);
@@ -88,13 +91,14 @@ public class ConcurrencyTest extends TestCase {
     }
     startLatch.countDown();
     finishedLatch.await();
-    assertFalse(failed.get());
+    assertThat(failed.get()).isFalse();
   }
 
   /**
    * Source-code based on
    * http://groups.google.com/group/google-gson/browse_thread/thread/563bb51ee2495081
    */
+  @Test
   public void testMultiThreadDeserialization() throws InterruptedException {
     final CountDownLatch startLatch = new CountDownLatch(1);
     final CountDownLatch finishedLatch = new CountDownLatch(10);
@@ -102,11 +106,11 @@ public class ConcurrencyTest extends TestCase {
     ExecutorService executor = Executors.newFixedThreadPool(10);
     for (int taskCount = 0; taskCount < 10; taskCount++) {
       executor.execute(new Runnable() {
-        public void run() {
+        @Override public void run() {
           try {
             startLatch.await();
             for (int i = 0; i < 10; i++) {
-              gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class); 
+              MyObject unused = gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
             }
           } catch (Throwable t) {
             failed.set(true);
@@ -118,9 +122,9 @@ public class ConcurrencyTest extends TestCase {
     }
     startLatch.countDown();
     finishedLatch.await();
-    assertFalse(failed.get());
+    assertThat(failed.get()).isFalse();
   }
-  
+
   @SuppressWarnings("unused")
   private static class MyObject {
     String a;

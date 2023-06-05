@@ -16,12 +16,12 @@
 
 package com.google.gson;
 
-import com.google.gson.internal.$Gson$Preconditions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * A data object that stores attributes of a field.
@@ -42,11 +42,12 @@ public final class FieldAttributes {
    * @param f the field to pull attributes from
    */
   public FieldAttributes(Field f) {
-    $Gson$Preconditions.checkNotNull(f);
-    this.field = f;
+    this.field = Objects.requireNonNull(f);
   }
 
   /**
+   * Gets the declaring Class that contains this field
+   *
    * @return the declaring class that contains this field
    */
   public Class<?> getDeclaringClass() {
@@ -54,6 +55,8 @@ public final class FieldAttributes {
   }
 
   /**
+   * Gets the name of the field
+   *
    * @return the name of the field
    */
   public String getName() {
@@ -135,27 +138,8 @@ public final class FieldAttributes {
     return (field.getModifiers() & modifier) != 0;
   }
 
-  /**
-   * Returns the value of the field represented by this {@code Field}, on
-   * the specified object. The value is automatically wrapped in an
-   * object if it has a primitive type.
-   *
-   * @return the value of the represented field in object
-   * {@code obj}; primitive values are wrapped in an appropriate
-   * object before being returned
-   * @throws IllegalAccessException
-   * @throws IllegalArgumentException
-   */
-  Object get(Object instance) throws IllegalAccessException {
-    return field.get(instance);
-  }
-
-  /**
-   * This is exposed internally only for the removing synthetic fields from the JSON output.
-   *
-   * @return true if the field is synthetic; otherwise false
-   */
-  boolean isSynthetic() {
-    return field.isSynthetic();
+  @Override
+  public String toString() {
+    return field.toString();
   }
 }

@@ -16,40 +16,85 @@
 
 package com.google.gson;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.google.errorprone.annotations.Keep;
 import com.google.gson.annotations.Since;
+import com.google.gson.annotations.Until;
 import com.google.gson.internal.Excluder;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
  * Unit tests for the {@link Excluder} class.
  *
  * @author Joel Leitch
  */
-public class VersionExclusionStrategyTest extends TestCase {
+public class VersionExclusionStrategyTest {
   private static final double VERSION = 5.0D;
 
-  public void testClassAndFieldAreAtSameVersion() throws Exception {
+  @Test
+  public void testSameVersion() throws Exception {
     Excluder excluder = Excluder.DEFAULT.withVersion(VERSION);
-    assertFalse(excluder.excludeClass(MockObject.class, true));
-    assertFalse(excluder.excludeField(MockObject.class.getField("someField"), true));
+    assertThat(excluder.excludeClass(MockClassSince.class, true)).isFalse();
+    assertThat(excluder.excludeField(MockClassSince.class.getField("someField"), true)).isFalse();
+
+    // Until version is exclusive
+    assertThat(excluder.excludeClass(MockClassUntil.class, true)).isTrue();
+    assertThat(excluder.excludeField(MockClassUntil.class.getField("someField"), true)).isTrue();
+
+    assertThat(excluder.excludeClass(MockClassBoth.class, true)).isFalse();
+    assertThat(excluder.excludeField(MockClassBoth.class.getField("someField"), true)).isFalse();
   }
 
-  public void testClassAndFieldAreBehindInVersion() throws Exception {
-    Excluder excluder = Excluder.DEFAULT.withVersion(VERSION + 1);
-    assertFalse(excluder.excludeClass(MockObject.class, true));
-    assertFalse(excluder.excludeField(MockObject.class.getField("someField"), true));
+  @Test
+  public void testNewerVersion() throws Exception {
+    Excluder excluder = Excluder.DEFAULT.withVersion(VERSION + 5);
+    assertThat(excluder.excludeClass(MockClassSince.class, true)).isFalse();
+    assertThat(excluder.excludeField(MockClassSince.class.getField("someField"), true)).isFalse();
+
+    assertThat(excluder.excludeClass(MockClassUntil.class, true)).isTrue();
+    assertThat(excluder.excludeField(MockClassUntil.class.getField("someField"), true)).isTrue();
+
+    assertThat(excluder.excludeClass(MockClassBoth.class, true)).isTrue();
+    assertThat(excluder.excludeField(MockClassBoth.class.getField("someField"), true)).isTrue();
   }
 
-  public void testClassAndFieldAreAheadInVersion() throws Exception {
-    Excluder excluder = Excluder.DEFAULT.withVersion(VERSION - 1);
-    assertTrue(excluder.excludeClass(MockObject.class, true));
-    assertTrue(excluder.excludeField(MockObject.class.getField("someField"), true));
+  @Test
+  public void testOlderVersion() throws Exception {
+    Excluder excluder = Excluder.DEFAULT.withVersion(VERSION - 5);
+    assertThat(excluder.excludeClass(MockClassSince.class, true)).isTrue();
+    assertThat(excluder.excludeField(MockClassSince.class.getField("someField"), true)).isTrue();
+
+    assertThat(excluder.excludeClass(MockClassUntil.class, true)).isFalse();
+    assertThat(excluder.excludeField(MockClassUntil.class.getField("someField"), true)).isFalse();
+
+    assertThat(excluder.excludeClass(MockClassBoth.class, true)).isTrue();
+    assertThat(excluder.excludeField(MockClassBoth.class.getField("someField"), true)).isTrue();
   }
 
   @Since(VERSION)
-  private static class MockObject {
+  private static class MockClassSince {
 
     @Since(VERSION)
+    @Keep
+    public final int someField = 0;
+  }
+
+  @Until(VERSION)
+  private static class MockClassUntil {
+
+    @Until(VERSION)
+    @Keep
+    public final int someField = 0;
+  }
+
+  @Since(VERSION)
+  @Until(VERSION + 2)
+  private static class MockClassBoth {
+
+    @Since(VERSION)
+    @Until(VERSION + 2)
+    @Keep
     public final int someField = 0;
   }
 }

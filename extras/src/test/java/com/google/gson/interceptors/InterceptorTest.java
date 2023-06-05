@@ -15,6 +15,9 @@
  */
 package com.google.gson.interceptors;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -29,26 +32,27 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link Intercept} and {@link JsonPostDeserializer}.
  *
  * @author Inderjeet Singh
  */
-public final class InterceptorTest extends TestCase {
+public final class InterceptorTest {
 
   private Gson gson;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     this.gson = new GsonBuilder()
         .registerTypeAdapterFactory(new InterceptorFactory())
         .enableComplexMapKeySerialization()
         .create();
   }
 
+  @Test
   public void testExceptionsPropagated() {
     try {
       gson.fromJson("{}", User.class);
@@ -56,23 +60,27 @@ public final class InterceptorTest extends TestCase {
     } catch (JsonParseException expected) {}
   }
 
+  @Test
   public void testTopLevelClass() {
     User user = gson.fromJson("{name:'bob',password:'pwd'}", User.class);
     assertEquals(User.DEFAULT_EMAIL, user.email);
   }
 
+  @Test
   public void testList() {
     List<User> list = gson.fromJson("[{name:'bob',password:'pwd'}]", new TypeToken<List<User>>(){}.getType());
     User user = list.get(0);
     assertEquals(User.DEFAULT_EMAIL, user.email);
   }
 
+  @Test
   public void testCollection() {
     Collection<User> list = gson.fromJson("[{name:'bob',password:'pwd'}]", new TypeToken<Collection<User>>(){}.getType());
     User user = list.iterator().next();
     assertEquals(User.DEFAULT_EMAIL, user.email);
   }
 
+  @Test
   public void testMapKeyAndValues() {
     Type mapType = new TypeToken<Map<User, Address>>(){}.getType();
     try {
@@ -86,11 +94,13 @@ public final class InterceptorTest extends TestCase {
     assertEquals(Address.DEFAULT_FIRST_LINE, entry.getValue().firstLine);
   }
 
+  @Test
   public void testField() {
     UserGroup userGroup = gson.fromJson("{user:{name:'bob',password:'pwd'}}", UserGroup.class);
     assertEquals(User.DEFAULT_EMAIL, userGroup.user.email);
   }
 
+  @Test
   public void testCustomTypeAdapter() {
     Gson gson = new GsonBuilder()
         .registerTypeAdapter(User.class, new TypeAdapter<User>() {
@@ -100,9 +110,9 @@ public final class InterceptorTest extends TestCase {
 
           @Override public User read(JsonReader in) throws IOException {
             in.beginObject();
-            in.nextName();
+            String unused1 = in.nextName();
             String name = in.nextString();
-            in.nextName();
+            String unused2 = in.nextName();
             String password = in.nextString();
             in.endObject();
             return new User(name, password);
@@ -114,6 +124,7 @@ public final class InterceptorTest extends TestCase {
     assertEquals(User.DEFAULT_EMAIL, userGroup.user.email);
   }
 
+  @Test
   public void testDirectInvocationOfTypeAdapter() throws Exception {
     TypeAdapter<UserGroup> adapter = gson.getAdapter(UserGroup.class);
     UserGroup userGroup = adapter.fromJson("{\"user\":{\"name\":\"bob\",\"password\":\"pwd\"}}");
@@ -141,7 +152,7 @@ public final class InterceptorTest extends TestCase {
   }
 
   public static final class UserValidator implements JsonPostDeserializer<User> {
-    public void postDeserialize(User user) {
+    @Override public void postDeserialize(User user) {
       if (user.name == null || user.password == null) {
         throw new JsonSyntaxException("name and password are required fields.");
       }
@@ -161,7 +172,7 @@ public final class InterceptorTest extends TestCase {
   }
 
   public static final class AddressValidator implements JsonPostDeserializer<Address> {
-    public void postDeserialize(Address address) {
+    @Override public void postDeserialize(Address address) {
       if (address.city == null || address.state == null || address.zip == null) {
         throw new JsonSyntaxException("Address city, state and zip are required fields.");
       }

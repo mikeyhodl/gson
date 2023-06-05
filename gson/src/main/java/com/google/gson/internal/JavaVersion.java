@@ -45,7 +45,7 @@ public final class JavaVersion {
   // Parses both legacy 1.8 style and newer 9.0.4 style 
   private static int parseDotted(String javaVersion) {
     try {
-      String[] parts = javaVersion.split("[._]");
+      String[] parts = javaVersion.split("[._]", 3);
       int firstVer = Integer.parseInt(parts[0]);
       if (firstVer == 1 && parts.length > 1) {
         return Integer.parseInt(parts[1]);
@@ -75,6 +75,8 @@ public final class JavaVersion {
   }
 
   /**
+   * Gets the major Java version
+   *
    * @return the major Java version, i.e. '8' for Java 1.8, '9' for Java 9 etc.
    */
   public static int getMajorJavaVersion() {
@@ -82,6 +84,8 @@ public final class JavaVersion {
   }
 
   /**
+   * Gets a boolean value depending if the application is running on Java 9 or later
+   *
    * @return {@code true} if the application is running on Java 9 or later; and {@code false} otherwise.
    */
   public static boolean isJava9OrLater() {
